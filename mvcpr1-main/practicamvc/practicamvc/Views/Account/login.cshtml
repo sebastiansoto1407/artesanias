@@ -1,0 +1,54 @@
+﻿@model practicamvc.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Iniciar sesión";
+}
+
+<div class="container" style="max-width: 500px; margin-top: 50px;">
+    <div class="card">
+        <div class="card__body">
+            <h2 style="text-align: center; margin-bottom: 24px;">Iniciar sesión</h2>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="status status--success" style="margin-bottom: 16px;">
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+
+            <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+                <div asp-validation-summary="ModelOnly" style="color: var(--color-error); margin-bottom: 16px;"></div>
+
+                <div class="form-group">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" autofocus />
+                    <span asp-validation-for="Email" style="color: var(--color-error); font-size: var(--font-size-sm);"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control" />
+                    <span asp-validation-for="Password" style="color: var(--color-error); font-size: var(--font-size-sm);"></span>
+                </div>
+
+                <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+                    <input asp-for="RememberMe" type="checkbox" />
+                    <label asp-for="RememberMe" style="margin: 0; cursor: pointer;"></label>
+                </div>
+
+                <button type="submit" class="btn btn--primary btn--full-width" style="margin-top: 16px;">
+                    Iniciar sesión
+                </button>
+
+                <p style="text-align: center; margin-top: 16px;">
+                    ¿No tienes cuenta? <a asp-action="Register">Regístrate aquí</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

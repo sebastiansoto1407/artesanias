@@ -11,10 +11,12 @@ namespace practicamvc.Data
         public ArtesaniasContext(DbContextOptions<ArtesaniasContext> options)
             : base(options) { }
 
+        // DbSets de las entidades
         public DbSet<ProductoModel> Productos { get; set; }
         public DbSet<ClienteModel> Clientes { get; set; }
         public DbSet<PedidoModel> Pedidos { get; set; }
         public DbSet<DetallePedidoModel> DetallesPedido { get; set; }
+        public DbSet<UsuarioModel> Usuarios { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -22,7 +24,7 @@ namespace practicamvc.Data
 
             modelBuilder.Entity<PedidoModel>()
                 .HasOne(p => p.Cliente)
-                .WithMany(c => c.Pedidos) 
+                .WithMany(c => c.Pedidos)
                 .HasForeignKey(p => p.IdCliente)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -34,13 +36,60 @@ namespace practicamvc.Data
 
             modelBuilder.Entity<DetallePedidoModel>()
                 .HasOne(d => d.Producto)
-                .WithMany(p => p.Detalles) 
+                .WithMany(p => p.Detalles)
                 .HasForeignKey(d => d.IdProducto)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<PedidoModel>().Property(p => p.MontoTotal).HasPrecision(18, 2);
-            modelBuilder.Entity<DetallePedidoModel>().Property(d => d.PrecioUnitario).HasPrecision(18, 2);
-            modelBuilder.Entity<ProductoModel>().Property(p => p.Precio).HasPrecision(18, 2);
+            modelBuilder.Entity<PedidoModel>()
+                .Property(p => p.MontoTotal)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<DetallePedidoModel>()
+                .Property(d => d.PrecioUnitario)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<ProductoModel>()
+                .Property(p => p.Precio)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<UsuarioModel>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<UsuarioModel>()
+                .Property(u => u.NombreCompleto)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            modelBuilder.Entity<UsuarioModel>()
+                .Property(u => u.Email)
+                .HasMaxLength(160)
+                .IsRequired();
+
+            modelBuilder.Entity<UsuarioModel>()
+                .Property(u => u.Password)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            modelBuilder.Entity<UsuarioModel>()
+                .Property(u => u.Rol)
+                .HasMaxLength(20)
+                .IsRequired()
+                .HasDefaultValue("Cliente");
+
+            modelBuilder.Entity<UsuarioModel>()
+                .Property(u => u.EstaActivo)
+                .IsRequired()
+                .HasDefaultValue(true);
+
+            modelBuilder.Entity<UsuarioModel>()
+                .Property(u => u.FechaRegistro)
+                .IsRequired()
+                .HasDefaultValueSql("GETDATE()");
+
+            modelBuilder.Entity<UsuarioModel>()
+                .Property(u => u.FechaNacimiento)
+                .IsRequired();
         }
 
         public override int SaveChanges()
@@ -48,6 +97,7 @@ namespace practicamvc.Data
             RecalcularMontos();
             return base.SaveChanges();
         }
+
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             RecalcularMontos();
@@ -57,16 +107,22 @@ namespace practicamvc.Data
         private void RecalcularMontos()
         {
             var ids = ChangeTracker.Entries<DetallePedidoModel>()
-                .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified || e.State == EntityState.Deleted)
+                .Where(e => e.State == EntityState.Added ||
+                           e.State == EntityState.Modified ||
+                           e.State == EntityState.Deleted)
                 .Select(e => e.Entity.IdPedido)
                 .Distinct()
                 .ToList();
 
             foreach (var idPedido in ids)
             {
-                var pedido = Pedidos.Include(p => p.Detalles).FirstOrDefault(p => p.Id == idPedido);
+                var pedido = Pedidos.Include(p => p.Detalles)
+                                   .FirstOrDefault(p => p.Id == idPedido);
+
                 if (pedido != null)
+                {
                     pedido.MontoTotal = pedido.Detalles?.Sum(d => d.Cantidad * d.PrecioUnitario) ?? 0m;
+                }
             }
         }
     }
