@@ -1,0 +1,17 @@
+﻿<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        if (window.jQuery && jQuery.validator && jQuery.validator.methods) {
+          var numberMethod = jQuery.validator.methods.number;
+          jQuery.validator.methods.number = function (value, element) {
+            if (this.optional(element)) return true;
+            var normalized = value.replace(/\s/g,'').replace(/\./g,'').replace(',', '.');
+            return numberMethod.call(this, normalized, element);
+          };
+        }
+    </script>
+}

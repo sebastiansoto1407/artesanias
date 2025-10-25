@@ -1,0 +1,38 @@
+﻿@model practicamvc.Models.ProductoModel
+@{
+    ViewData["Title"] = "Eliminar producto";
+}
+
+<h2 class="mb-3">Eliminar producto</h2>
+
+<div class="alert alert-warning d-flex align-items-center" role="alert">
+    <div>
+        <strong>Atención:</strong> Estás a punto de eliminar este producto. Esta acción no se puede deshacer.
+    </div>
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Nombre</dt>
+            <dd class="col-sm-9">@Model.Nombre</dd>
+
+            <dt class="col-sm-3">Descripción</dt>
+            <dd class="col-sm-9">@Model.Descripcion</dd>
+
+            <dt class="col-sm-3">Precio (Bs)</dt>
+            <dd class="col-sm-9">@Model.Precio.ToString("N2")</dd>
+
+            <dt class="col-sm-3">Stock</dt>
+            <dd class="col-sm-9">@Model.Stock</dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Delete" class="d-flex gap-2">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">
+        <i class="bi bi-trash"></i> Eliminar definitivamente
+    </button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>

@@ -1,0 +1,66 @@
+﻿@model practicamvc.Models.ProductoModel
+@{
+    ViewData["Title"] = "Nuevo producto";
+}
+<h2>Nuevo producto</h2>
+
+<form asp-action="Create" novalidate class="card shadow-sm p-3" id="prodForm">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+    <div class="mb-3">
+        <label asp-for="Nombre" class="form-label"></label>
+        <input asp-for="Nombre" class="form-control" maxlength="120" required />
+
+        <span asp-validation-for="Nombre" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Descripcion" class="form-label"></label>
+        <textarea asp-for="Descripcion" class="form-control" rows="3" maxlength="500"></textarea>
+        <span asp-validation-for="Descripcion" class="text-danger"></span>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label asp-for="Precio" class="form-label"></label>
+            <input asp-for="Precio" class="form-control" inputmode="decimal" step="0.01" min="0.01" />
+            <span asp-validation-for="Precio" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Stock" class="form-label"></label>
+            <input asp-for="Stock" class="form-control" inputmode="numeric" min="0" />
+            <span asp-validation-for="Stock" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        const onlyPunct = s => s.replace(/[\p{L}\p{N}\s]+/gu, '')?.length === s.trim().length;
+        function normalize(s){ return (s||'').trim().replace(/\s{2,}/g,' '); }
+
+        const f = document.getElementById('prodForm');
+        f?.addEventListener('submit', e => {
+            const nombre = f.querySelector('[name="Nombre"]');
+            const desc = f.querySelector('[name="Descripcion"]');
+            nombre.value = normalize(nombre.value);
+            if (desc) desc.value = normalize(desc.value);
+
+            if (!nombre.value || onlyPunct(nombre.value)) {
+                e.preventDefault();
+                nombre.setCustomValidity('Ingrese un nombre válido.');
+                nombre.reportValidity();
+            } else {
+                nombre.setCustomValidity('');
+            }
+        });
+    </script>
+}

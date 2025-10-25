@@ -1,0 +1,60 @@
+﻿@model IEnumerable<practicamvc.Models.DetallePedidoModel>
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Detalles de pedido";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Detalles de pedido</h2>
+    <a asp-action="Create" class="btn btn-primary">Nuevo detalle</a>
+</div>
+
+@if (TempData["Ok"] != null)
+{
+    <div class="alert alert-success">@TempData["Ok"]</div>
+}
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <select name="idPedido" class="form-select" asp-items="ViewBag.Pedidos">
+            <option value="">-- Filtrar por pedido --</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-secondary" type="submit">Filtrar</button>
+        <a asp-action="Index" class="btn btn-link">Limpiar</a>
+    </div>
+</form>
+
+<table class="table table-striped table-hover shadow-sm">
+    <thead class="table-light">
+        <tr>
+            <th>#</th>
+            <th>Pedido</th>
+            <th>Cliente</th>
+            <th>Producto</th>
+            <th class="text-end">Cantidad</th>
+            <th class="text-end">Precio unit. (Bs)</th>
+            <th class="text-end">Subtotal (Bs)</th>
+            <th style="width:190px"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var d in Model)
+        {
+            <tr>
+                <td>@d.Id</td>
+                <td>@d.IdPedido</td>
+                <td>@(d.Pedido?.Cliente?.Nombre ?? "—")</td>
+                <td>@d.Producto?.Nombre</td>
+                <td class="text-end">@d.Cantidad</td>
+                <td class="text-end">@d.PrecioUnitario.ToString("N2")</td>
+                <td class="text-end">@((d.Cantidad * d.PrecioUnitario).ToString("N2"))</td>
+                <td class="text-end">
+                    <a asp-action="Details" asp-route-id="@d.Id" class="btn btn-sm btn-info text-white">Ver</a>
+                    <a asp-action="Edit" asp-route-id="@d.Id" class="btn btn-sm btn-warning">Editar</a>
+                    <a asp-action="Delete" asp-route-id="@d.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

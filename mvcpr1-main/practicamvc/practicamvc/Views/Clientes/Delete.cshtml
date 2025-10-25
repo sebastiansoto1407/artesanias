@@ -1,0 +1,30 @@
+﻿@model practicamvc.Models.ClienteModel
+@{
+    ViewData["Title"] = "Eliminar cliente";
+}
+<h2 class="mb-3">Eliminar cliente</h2>
+
+<div class="alert alert-warning" role="alert">
+    <strong>Atención:</strong> Esta acción no se puede deshacer.
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Nombre</dt>
+            <dd class="col-sm-9">@Model.Nombre</dd>
+            <dt class="col-sm-3">Email</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+            <dt class="col-sm-3">Teléfono</dt>
+            <dd class="col-sm-9">@Model.Telefono</dd>
+            <dt class="col-sm-3">Dirección</dt>
+            <dd class="col-sm-9">@((string.IsNullOrWhiteSpace(Model.Direccion) ? "—" : Model.Direccion))</dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Delete" class="d-flex gap-2">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Eliminar definitivamente</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>

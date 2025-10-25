@@ -1,0 +1,64 @@
+﻿@{
+    ViewData["Title"] = "Inicio";
+}
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary">Sistema de Artesanias</h1>
+        <p class="lead text-muted">Usar en Pedidos, detalles de pedidos y productos cambiar con el punto .</p>
+    </div>
+    <!-- ponemos los botones para q sea directo-->
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-box-seam display-4 text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Productos</h5>
+                    <p class="card-text text-muted">Administra el catalogo de productos disponibles.</p>
+                    <a asp-controller="Productos" asp-action="Index" class="btn btn-outline-primary">Ir a Productos</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-people display-4 text-success"></i>
+                    </div>
+                    <h5 class="card-title">Clientes</h5>
+                    <p class="card-text text-muted">Gestiona la informacion de tus clientes.</p>
+                    <a asp-controller="Clientes" asp-action="Index" class="btn btn-outline-success">Ir a Clientes</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-cart-check display-4 text-warning"></i>
+                    </div>
+                    <h5 class="card-title">Pedidos</h5>
+                    <p class="card-text text-muted">Controla los pedidos realizados por clientes.</p>
+                    <a asp-controller="Pedidos" asp-action="Index" class="btn btn-outline-warning">Ir a Pedidos</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-list-check display-4 text-danger"></i>
+                    </div>
+                    <h5 class="card-title">Detalles de Pedido</h5>
+                    <p class="card-text text-muted">Visualiza y edita los items de cada pedido.</p>
+                    <a asp-controller="DetallesPedido" asp-action="Index" class="btn btn-outline-danger">Ir a Detalles</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

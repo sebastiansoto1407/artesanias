@@ -1,0 +1,62 @@
+﻿@model IEnumerable<practicamvc.Models.PedidoModel>
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Pedidos";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Pedidos</h2>
+    <a asp-action="Create" class="btn btn-primary">Nuevo pedido</a>
+</div>
+
+@if (TempData["Ok"] != null)
+{
+    <div class="alert alert-success">@TempData["Ok"]</div>
+}
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <select name="qEstado" class="form-select" asp-items="ViewBag.Estados">
+            <option value="">-- Estado --</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <select name="idCliente" class="form-select" asp-items="ViewBag.Clientes">
+            <option value="">-- Cliente --</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-secondary" type="submit">Filtrar</button>
+        <a asp-action="Index" class="btn btn-link">Limpiar</a>
+    </div>
+</form>
+
+<table class="table table-striped table-hover shadow-sm">
+    <thead class="table-light">
+        <tr>
+            <th>#</th>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Estado</th>
+            <th class="text-end">Monto (Bs)</th>
+            <th style="width:190px"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.Id</td>
+                <td>@p.FechaPedido.ToString("yyyy-MM-dd")</td>
+                <td>@(p.Cliente?.Nombre ?? "—")</td>
+                <td>@p.Estado</td>
+                <td class="text-end">@p.MontoTotal.ToString("N2")</td>
+                <td class="text-end">
+                    <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-sm btn-info text-white">Ver</a>
+                    <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-warning">Editar</a>
+                    <a asp-action="Delete" asp-route-id="@p.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

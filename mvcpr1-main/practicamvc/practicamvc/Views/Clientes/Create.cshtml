@@ -1,0 +1,55 @@
+﻿@model practicamvc.Models.ClienteModel
+@{
+    ViewData["Title"] = "Nuevo cliente";
+}
+<h2>Nuevo cliente</h2>
+
+<form asp-action="Create" novalidate class="card shadow-sm p-3" id="cliFormCreate">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+    <div class="mb-3">
+        <label asp-for="Nombre" class="form-label"></label>
+        <input asp-for="Nombre" class="form-control" maxlength="100" required />
+        <span asp-validation-for="Nombre" class="text-danger"></span>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label asp-for="Email" class="form-label"></label>
+            <input asp-for="Email" class="form-control" maxlength="160" required />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Telefono" class="form-label"></label>
+            <input asp-for="Telefono" class="form-control" maxlength="25" required />
+            <span asp-validation-for="Telefono" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <label asp-for="Direccion" class="form-label"></label>
+        <input asp-for="Direccion" class="form-control" maxlength="200" />
+        <span asp-validation-for="Direccion" class="text-danger"></span>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        const f = document.getElementById('cliFormCreate');
+        function norm(s){ return (s||'').trim().replace(/\s{2,}/g,' '); }
+        f?.addEventListener('submit', e => {
+            const nombre = f.querySelector('[name="Nombre"]');
+            const dir    = f.querySelector('[name="Direccion"]');
+            nombre.value = norm(nombre.value);
+            if (dir) dir.value = norm(dir.value);
+        });
+    </script>
+}

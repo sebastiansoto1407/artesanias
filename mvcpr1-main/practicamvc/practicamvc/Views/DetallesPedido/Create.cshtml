@@ -1,0 +1,48 @@
+﻿@model practicamvc.Models.DetallePedidoModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Nuevo detalle";
+}
+<h2>Nuevo detalle</h2>
+
+<form asp-action="Create" novalidate class="card shadow-sm p-3" id="detFormCreate">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label asp-for="IdPedido" class="form-label"></label>
+            <select asp-for="IdPedido" class="form-select" asp-items="ViewBag.Pedidos"></select>
+            <span class="form-text">Elija un pedido: se muestra “Pedido # — Cliente”.</span>
+            <span asp-validation-for="IdPedido" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="IdProducto" class="form-label"></label>
+            <select asp-for="IdProducto" class="form-select" asp-items="ViewBag.Productos"></select>
+            <span asp-validation-for="IdProducto" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+        <div class="col-md-6">
+            <label asp-for="Cantidad" class="form-label"></label>
+            <input asp-for="Cantidad" class="form-control" type="number" min="1" step="1" />
+            <span asp-validation-for="Cantidad" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="PrecioUnitario" class="form-label"></label>
+            <input asp-for="PrecioUnitario" class="form-control" inputmode="decimal" step="0.01" min="0" />
+            <span asp-validation-for="PrecioUnitario" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

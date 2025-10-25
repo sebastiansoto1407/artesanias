@@ -1,0 +1,22 @@
+﻿@model practicamvc.Models.ClienteModel
+@{
+    ViewData["Title"] = "Detalle de cliente";
+}
+<h2>Detalle</h2>
+
+<div class="card shadow-sm p-3">
+    <dl class="row mb-0">
+        <dt class="col-sm-3">Nombre</dt>
+        <dd class="col-sm-9">@Model.Nombre</dd>
+        <dt class="col-sm-3">Email</dt>
+        <dd class="col-sm-9">@Model.Email</dd>
+        <dt class="col-sm-3">Teléfono</dt>
+        <dd class="col-sm-9">@Model.Telefono</dd>
+        <dt class="col-sm-3">Dirección</dt>
+        <dd class="col-sm-9">@((string.IsNullOrWhiteSpace(Model.Direccion) ? "—" : Model.Direccion))</dd>
+    </dl>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+        <a asp-action="Index" class="btn btn-secondary">Volver</a>
+    </div>
+</div>
