@@ -1,0 +1,64 @@
+﻿@model practicamvc.Models.UsuarioModel
+@{
+    ViewData["Title"] = "Crear Usuario";
+}
+
+<div class="container" style="max-width: 600px; margin-top: 50px;">
+    <div class="card">
+        <div class="card-body">
+            <h2 class="mb-4 text-center">Crear nuevo usuario</h2>
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <!-- Nombre -->
+                <div class="form-group mb-3">
+                    <label asp-for="NombreCompleto" class="form-label"></label>
+                    <input asp-for="NombreCompleto" class="form-control" autofocus />
+                    <span asp-validation-for="NombreCompleto" class="text-danger"></span>
+                </div>
+                <!-- Email -->
+                <div class="form-group mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <!-- Password -->
+                <div class="form-group mb-3">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+                <!-- Rol -->
+                <div class="form-group mb-3">
+                    <label asp-for="Rol" class="form-label"></label>
+                    <select asp-for="Rol" class="form-control">
+                        <option value="Cliente">Cliente</option>
+                        <option value="Vendedor">Vendedor</option>
+                        <option value="Administrador">Administrador</option>
+                    </select>
+                    <span asp-validation-for="Rol" class="text-danger"></span>
+                </div>
+                <!-- Fecha de nacimiento -->
+                <div class="form-group mb-3">
+                    <label asp-for="FechaNacimiento" class="form-label"></label>
+                    <input asp-for="FechaNacimiento" class="form-control" type="date" />
+                    <span asp-validation-for="FechaNacimiento" class="text-danger"></span>
+                </div>
+                <!-- Estado activo -->
+                <div class="form-check mb-3">
+                    <input asp-for="EstaActivo" class="form-check-input" />
+                    <label asp-for="EstaActivo" class="form-check-label"></label>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                    Crear Usuario
+                </button>
+                <a asp-action="Index" class="btn btn-secondary mt-2 w-100">Volver</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

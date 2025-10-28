@@ -3,131 +3,129 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using practicamvc.Data;
 using practicamvc.Models;
+using Microsoft.AspNetCore.Authorization;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace practicamvc.Controllers
 {
+    [Authorize(Roles = "Administrador,Vendedor")] // Solo ADMIN y VENDEDOR
     public class PedidosController : Controller
     {
         private readonly ArtesaniasContext _context;
 
-        public PedidosController(ArtesaniasContext context) => _context = context;
-
-        private static readonly string[] Estados = new[] { "Pendiente", "Pagado", "Enviado", "Cancelado" };
-
-        public async Task<IActionResult> Index(string? qEstado, int? idCliente)
+        public PedidosController(ArtesaniasContext context)
         {
-            var query = _context.Pedidos
-                .Include(p => p.Cliente)
-                .AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(qEstado))
-                query = query.Where(p => p.Estado == qEstado);
-
-            if (idCliente.HasValue)
-                query = query.Where(p => p.IdCliente == idCliente.Value);
-
-            var data = await query
-                .OrderByDescending(p => p.FechaPedido)
-                .ThenBy(p => p.Id)
-                .ToListAsync();
-
-            ViewBag.Estados = new SelectList(Estados);
-            ViewBag.Clientes = new SelectList(await _context.Clientes.OrderBy(c => c.Nombre).ToListAsync(), "Id", "Nombre");
-            ViewBag.qEstado = qEstado;
-            ViewBag.idCliente = idCliente;
-
-            return View(data);
+            _context = context;
         }
 
+        // GET: Pedidos
+        public async Task<IActionResult> Index()
+        {
+            var pedidos = await _context.Pedidos
+                .Include(p => p.Cliente)
+                .OrderByDescending(p => p.FechaPedido)
+                .ToListAsync();
+            return View(pedidos);
+        }
+
+        // GET: Pedidos/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id is null) return NotFound();
+            if (id == null) return NotFound();
 
             var pedido = await _context.Pedidos
                 .Include(p => p.Cliente)
+                .Include(p => p.Detalles)
+                    .ThenInclude(d => d.Producto)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
-            if (pedido is null) return NotFound();
+            if (pedido == null) return NotFound();
 
             return View(pedido);
         }
 
-        public async Task<IActionResult> Create()
+        // GET: Pedidos/Create
+        public IActionResult Create()
         {
-            ViewBag.Clientes = new SelectList(await _context.Clientes.OrderBy(c => c.Nombre).ToListAsync(), "Id", "Nombre");
-            ViewBag.Estados = new SelectList(Estados);
-            return View(new PedidoModel { FechaPedido = DateTime.Today, Estado = "Pendiente" });
+            ViewData["IdCliente"] = new SelectList(_context.Clientes, "Id", "Nombre");
+            return View();
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(PedidoModel pedido)
+        // POST: Pedidos/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Id,FechaPedido,IdCliente,Estado,MontoTotal")] PedidoModel pedido)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                ViewBag.Clientes = new SelectList(await _context.Clientes.OrderBy(c => c.Nombre).ToListAsync(), "Id", "Nombre", pedido.IdCliente);
-                ViewBag.Estados = new SelectList(Estados, pedido.Estado);
-                return View(pedido);
+                _context.Add(pedido);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Pedido creado correctamente.";
+                return RedirectToAction(nameof(Index));
             }
-
-            _context.Pedidos.Add(pedido);
-            await _context.SaveChangesAsync();
-            TempData["Ok"] = "Pedido creado correctamente.";
-            return RedirectToAction(nameof(Index));
+            ViewData["IdCliente"] = new SelectList(_context.Clientes, "Id", "Nombre", pedido.IdCliente);
+            return View(pedido);
         }
 
+        // GET: Pedidos/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id is null) return NotFound();
+            if (id == null) return NotFound();
 
             var pedido = await _context.Pedidos.FindAsync(id);
-            if (pedido is null) return NotFound();
+            if (pedido == null) return NotFound();
 
-            ViewBag.Clientes = new SelectList(await _context.Clientes.OrderBy(c => c.Nombre).ToListAsync(), "Id", "Nombre", pedido.IdCliente);
-            ViewBag.Estados = new SelectList(Estados, pedido.Estado);
+            ViewData["IdCliente"] = new SelectList(_context.Clientes, "Id", "Nombre", pedido.IdCliente);
             return View(pedido);
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, PedidoModel pedido)
+        // POST: Pedidos/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,FechaPedido,IdCliente,Estado,MontoTotal")] PedidoModel pedido)
         {
             if (id != pedido.Id) return NotFound();
 
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                ViewBag.Clientes = new SelectList(await _context.Clientes.OrderBy(c => c.Nombre).ToListAsync(), "Id", "Nombre", pedido.IdCliente);
-                ViewBag.Estados = new SelectList(Estados, pedido.Estado);
-                return View(pedido);
+                try
+                {
+                    _context.Update(pedido);
+                    await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "Pedido actualizado correctamente.";
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!PedidoExists(pedido.Id))
+                        return NotFound();
+                    else
+                        throw;
+                }
+                return RedirectToAction(nameof(Index));
             }
-
-            try
-            {
-                _context.Update(pedido);
-                await _context.SaveChangesAsync();
-                TempData["Ok"] = "Pedido actualizado.";
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await _context.Pedidos.AnyAsync(e => e.Id == pedido.Id))
-                    return NotFound();
-                throw;
-            }
-
-            return RedirectToAction(nameof(Index));
+            ViewData["IdCliente"] = new SelectList(_context.Clientes, "Id", "Nombre", pedido.IdCliente);
+            return View(pedido);
         }
 
+        // GET: Pedidos/Delete/5 - Solo ADMINISTRADOR
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id is null) return NotFound();
+            if (id == null) return NotFound();
 
             var pedido = await _context.Pedidos
                 .Include(p => p.Cliente)
                 .FirstOrDefaultAsync(m => m.Id == id);
+            if (pedido == null) return NotFound();
 
-            if (pedido is null) return NotFound();
             return View(pedido);
         }
 
-        [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
+        // POST: Pedidos/Delete/5 - Solo ADMINISTRADOR
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var pedido = await _context.Pedidos.FindAsync(id);
@@ -135,9 +133,15 @@ namespace practicamvc.Controllers
             {
                 _context.Pedidos.Remove(pedido);
                 await _context.SaveChangesAsync();
-                TempData["Ok"] = "Pedido eliminado.";
+                TempData["SuccessMessage"] = "Pedido eliminado correctamente.";
             }
+
             return RedirectToAction(nameof(Index));
+        }
+
+        private bool PedidoExists(int id)
+        {
+            return _context.Pedidos.Any(e => e.Id == id);
         }
     }
 }

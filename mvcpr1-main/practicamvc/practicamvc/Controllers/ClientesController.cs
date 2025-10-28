@@ -2,15 +2,18 @@
 using Microsoft.EntityFrameworkCore;
 using practicamvc.Data;
 using practicamvc.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace practicamvc.Controllers
 {
+    [Authorize(Roles = "Administrador,Vendedor")] // Solo ADMIN y VENDEDOR
     public class ClientesController : Controller
     {
         private readonly ArtesaniasContext _context;
 
         public ClientesController(ArtesaniasContext context) => _context = context;
 
+        // GET: Clientes
         public async Task<IActionResult> Index(string? q)
         {
             var query = _context.Clientes.AsQueryable();
@@ -30,6 +33,7 @@ namespace practicamvc.Controllers
             return View(data);
         }
 
+        // GET: Clientes/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id is null) return NotFound();
@@ -40,8 +44,10 @@ namespace practicamvc.Controllers
             return View(cliente);
         }
 
+        // GET: Clientes/Create
         public IActionResult Create() => View(new ClienteModel());
 
+        // POST: Clientes/Create
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ClienteModel cliente)
         {
@@ -57,10 +63,11 @@ namespace practicamvc.Controllers
 
             _context.Clientes.Add(cliente);
             await _context.SaveChangesAsync();
-            TempData["Ok"] = "Cliente creado correctamente.";
+            TempData["SuccessMessage"] = $"Cliente '{cliente.Nombre}' creado correctamente.";
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: Clientes/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id is null) return NotFound();
@@ -69,6 +76,7 @@ namespace practicamvc.Controllers
             return View(cliente);
         }
 
+        // POST: Clientes/Edit/5
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, ClienteModel cliente)
         {
@@ -87,7 +95,7 @@ namespace practicamvc.Controllers
             {
                 _context.Update(cliente);
                 await _context.SaveChangesAsync();
-                TempData["Ok"] = "Cliente actualizado.";
+                TempData["SuccessMessage"] = $"Cliente '{cliente.Nombre}' actualizado correctamente.";
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -98,6 +106,8 @@ namespace practicamvc.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: Clientes/Delete/5 - Solo ADMINISTRADOR
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id is null) return NotFound();
@@ -106,7 +116,9 @@ namespace practicamvc.Controllers
             return View(cliente);
         }
 
+        // POST: Clientes/Delete/5 - Solo ADMINISTRADOR
         [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var cliente = await _context.Clientes.FindAsync(id);
@@ -114,7 +126,7 @@ namespace practicamvc.Controllers
             {
                 _context.Clientes.Remove(cliente);
                 await _context.SaveChangesAsync();
-                TempData["Ok"] = "Cliente eliminado.";
+                TempData["SuccessMessage"] = $"Cliente '{cliente.Nombre}' eliminado correctamente.";
             }
             return RedirectToAction(nameof(Index));
         }

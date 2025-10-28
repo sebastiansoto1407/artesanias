@@ -1,0 +1,51 @@
+﻿@model IEnumerable<practicamvc.Models.UsuarioModel>
+@{
+    ViewData["Title"] = "Usuarios";
+}
+
+<div class="container" style="max-width: 900px;">
+    <h2 class="my-4">Usuarios registrados</h2>
+    <a asp-action="Create" class="btn btn-success mb-3">Crear nuevo usuario</a>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Fecha de nacimiento</th>
+                <th>Activo</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var usuario in Model)
+            {
+                <tr>
+                    <td>@usuario.NombreCompleto</td>
+                    <td>@usuario.Email</td>
+                    <td>
+                        <span class="badge @(usuario.Rol == "Administrador" ? "bg-danger" : usuario.Rol == "Vendedor" ? "bg-success" : "bg-primary")">
+                            @usuario.Rol
+                        </span>
+                    </td>
+                    <td>@usuario.FechaNacimiento.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        @if (usuario.EstaActivo)
+                        {
+                            <span class="badge bg-success">Sí</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">No</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@usuario.Id" class="btn btn-sm btn-warning">Editar</a>
+                        <a asp-action="Details" asp-route-id="@usuario.Id" class="btn btn-sm btn-info">Detalles</a>
+                        <a asp-action="Delete" asp-route-id="@usuario.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

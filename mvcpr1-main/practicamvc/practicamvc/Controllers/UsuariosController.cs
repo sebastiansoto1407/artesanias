@@ -5,9 +5,10 @@ using practicamvc.Models;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Microsoft.AspNetCore.Authorization;
 namespace practicamvc.Controllers
 {
+    [Authorize(Roles = "Administrador")]
     public class UsuariosController : Controller
     {
         private readonly ArtesaniasContext _context;

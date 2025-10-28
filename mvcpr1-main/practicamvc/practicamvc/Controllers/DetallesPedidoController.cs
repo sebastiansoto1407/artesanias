@@ -3,160 +3,151 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using practicamvc.Data;
 using practicamvc.Models;
+using Microsoft.AspNetCore.Authorization;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace practicamvc.Controllers
 {
+    [Authorize(Roles = "Administrador,Vendedor")] // Solo ADMIN y VENDEDOR
     public class DetallesPedidoController : Controller
     {
         private readonly ArtesaniasContext _context;
 
-        public DetallesPedidoController(ArtesaniasContext context) => _context = context;
-
-        public async Task<IActionResult> Index(int? idPedido)
+        public DetallesPedidoController(ArtesaniasContext context)
         {
-            var query = _context.DetallesPedido
-                .Include(d => d.Pedido).ThenInclude(p => p.Cliente)
-                .Include(d => d.Producto)
-                .AsQueryable();
-
-            if (idPedido.HasValue) query = query.Where(d => d.IdPedido == idPedido.Value);
-
-            var data = await query
-                .OrderByDescending(d => d.IdPedido)
-                .ThenBy(d => d.Id)
-                .ToListAsync();
-
-            var pedidos = await _context.Pedidos.Include(p => p.Cliente).OrderByDescending(p => p.Id).ToListAsync();
-            var pedidosList = pedidos.Select(p => new
-            {
-                p.Id,
-                Texto = $"Pedido #{p.Id} — {(p.Cliente != null ? p.Cliente.Nombre : "Sin cliente")}"
-            }).ToList();
-
-            ViewBag.Pedidos = new SelectList(pedidosList, "Id", "Texto", idPedido);
-
-            return View(data);
+            _context = context;
         }
 
+        // GET: DetallesPedido
+        public async Task<IActionResult> Index()
+        {
+            var detalles = await _context.DetallesPedido
+                .Include(d => d.Pedido)
+                    .ThenInclude(p => p.Cliente)
+                .Include(d => d.Producto)
+                .ToListAsync();
+            return View(detalles);
+        }
+
+        // GET: DetallesPedido/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id is null) return NotFound();
+            if (id == null) return NotFound();
 
             var detalle = await _context.DetallesPedido
-                .Include(d => d.Pedido).ThenInclude(p => p.Cliente)
+                .Include(d => d.Pedido)
+                    .ThenInclude(p => p.Cliente)
                 .Include(d => d.Producto)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
-            if (detalle is null) return NotFound();
+            if (detalle == null) return NotFound();
+
             return View(detalle);
         }
 
-        public async Task<IActionResult> Create(int? idPedido)
+        // GET: DetallesPedido/Create
+        public IActionResult Create()
         {
-            await CargarCombos(idPedido);
-            return View(new DetallePedidoModel { Cantidad = 1 });
+            ViewData["IdPedido"] = new SelectList(_context.Pedidos, "Id", "Id");
+            ViewData["IdProducto"] = new SelectList(_context.Productos, "Id", "Nombre");
+            return View();
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(DetallePedidoModel detalle)
+        // POST: DetallesPedido/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Id,IdPedido,IdProducto,Cantidad,PrecioUnitario")] DetallePedidoModel detalle)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                await CargarCombos(detalle.IdPedido);
-                return View(detalle);
+                _context.Add(detalle);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Detalle de pedido creado correctamente.";
+                return RedirectToAction(nameof(Index));
             }
-
-            _context.DetallesPedido.Add(detalle);
-            await _context.SaveChangesAsync();
-            TempData["Ok"] = "Detalle agregado.";
-            return RedirectToAction(nameof(Index), new { idPedido = detalle.IdPedido });
+            ViewData["IdPedido"] = new SelectList(_context.Pedidos, "Id", "Id", detalle.IdPedido);
+            ViewData["IdProducto"] = new SelectList(_context.Productos, "Id", "Nombre", detalle.IdProducto);
+            return View(detalle);
         }
 
+        // GET: DetallesPedido/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id is null) return NotFound();
+            if (id == null) return NotFound();
 
             var detalle = await _context.DetallesPedido.FindAsync(id);
-            if (detalle is null) return NotFound();
+            if (detalle == null) return NotFound();
 
-            await CargarCombos(detalle.IdPedido);
+            ViewData["IdPedido"] = new SelectList(_context.Pedidos, "Id", "Id", detalle.IdPedido);
+            ViewData["IdProducto"] = new SelectList(_context.Productos, "Id", "Nombre", detalle.IdProducto);
             return View(detalle);
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, DetallePedidoModel detalle)
+        // POST: DetallesPedido/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,IdPedido,IdProducto,Cantidad,PrecioUnitario")] DetallePedidoModel detalle)
         {
             if (id != detalle.Id) return NotFound();
-            if (!ModelState.IsValid)
+
+            if (ModelState.IsValid)
             {
-                await CargarCombos(detalle.IdPedido);
-                return View(detalle);
+                try
+                {
+                    _context.Update(detalle);
+                    await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "Detalle de pedido actualizado correctamente.";
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!DetalleExists(detalle.Id))
+                        return NotFound();
+                    else
+                        throw;
+                }
+                return RedirectToAction(nameof(Index));
             }
-
-            try
-            {
-                _context.Update(detalle);
-                await _context.SaveChangesAsync();
-                TempData["Ok"] = "Detalle actualizado.";
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await _context.DetallesPedido.AnyAsync(e => e.Id == detalle.Id))
-                    return NotFound();
-                throw;
-            }
-
-            return RedirectToAction(nameof(Index), new { idPedido = detalle.IdPedido });
-        }
-
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id is null) return NotFound();
-
-            var detalle = await _context.DetallesPedido
-                .Include(d => d.Pedido).ThenInclude(p => p.Cliente)
-                .Include(d => d.Producto)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
-            if (detalle is null) return NotFound();
+            ViewData["IdPedido"] = new SelectList(_context.Pedidos, "Id", "Id", detalle.IdPedido);
+            ViewData["IdProducto"] = new SelectList(_context.Productos, "Id", "Nombre", detalle.IdProducto);
             return View(detalle);
         }
 
-        [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
+        // GET: DetallesPedido/Delete/5 - Solo ADMINISTRADOR
+        [Authorize(Roles = "Administrador")]
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var detalle = await _context.DetallesPedido
+                .Include(d => d.Pedido)
+                .Include(d => d.Producto)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (detalle == null) return NotFound();
+
+            return View(detalle);
+        }
+
+        // POST: DetallesPedido/Delete/5 - Solo ADMINISTRADOR
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var detalle = await _context.DetallesPedido.FindAsync(id);
             if (detalle != null)
             {
-                var idPedido = detalle.IdPedido;
                 _context.DetallesPedido.Remove(detalle);
                 await _context.SaveChangesAsync();
-                TempData["Ok"] = "Detalle eliminado.";
-                return RedirectToAction(nameof(Index), new { idPedido });
+                TempData["SuccessMessage"] = "Detalle de pedido eliminado correctamente.";
             }
+
             return RedirectToAction(nameof(Index));
         }
 
-        private async Task CargarCombos(int? idPedidoSeleccionado)
+        private bool DetalleExists(int id)
         {
-            var pedidos = await _context.Pedidos
-                .Include(p => p.Cliente)
-                .OrderByDescending(p => p.Id)
-                .ToListAsync();
-
-            var pedidosList = pedidos.Select(p => new
-            {
-                p.Id,
-                Texto = $"Pedido #{p.Id} — {(p.Cliente != null ? p.Cliente.Nombre : "Sin cliente")}"
-            });
-
-            ViewBag.Pedidos = new SelectList(pedidosList, "Id", "Texto", idPedidoSeleccionado);
-
-            var productos = await _context.Productos
-                .OrderBy(pr => pr.Nombre)
-                .ToListAsync();
-
-            ViewBag.Productos = new SelectList(productos, "Id", "Nombre");
+            return _context.DetallesPedido.Any(e => e.Id == id);
         }
     }
 }
